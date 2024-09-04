@@ -149,13 +149,14 @@ var defaultLogFormatter = func(param LogFormatterParams) string {
 	if param.Latency > time.Minute {
 		param.Latency = param.Latency.Truncate(time.Second)
 	}
-	return fmt.Sprintf("[GIN] %v |%s %3d %s| %13v | %15s |%s %-7s %s %#v\n%s",
+	return fmt.Sprintf("[GIN] %v |%s %3d %s| %13v | %15s |%s %-7s %s %#v \n|Headers:%s \n%s",
 		param.TimeStamp.Format("2006/01/02 - 15:04:05"),
 		statusColor, param.StatusCode, resetColor,
 		param.Latency,
 		param.ClientIP,
 		methodColor, param.Method, resetColor,
 		param.Path,
+		param.Request.Header,
 		param.ErrorMessage,
 	)
 }
@@ -275,6 +276,10 @@ func LoggerWithConfig(conf LoggerConfig) HandlerFunc {
 		}
 
 		param.Path = path
+
+		if param.StatusCode >= 300 {
+			return
+		}
 
 		fmt.Fprint(out, formatter(param))
 	}
